@@ -683,7 +683,7 @@ void mDNS::setServicePort(std::uint16_t port) { port_ = port; }
 
 void mDNS::setServiceName(const std::string &name) { name_ = name; }
 
-void mDNS::setServiceTxtRecord(const std::string &txt_record) { txt_record_ = txt_record; }
+void mDNS::setServiceTxtRecord(const std::map<std::string, std::string> &txt_record) { txt_record_ = txt_record; }
 
 void mDNS::runMainLoop() {
   constexpr size_t number_of_sockets = 32;
@@ -769,30 +769,15 @@ void mDNS::runMainLoop() {
   service_record.record_aaaa.ttl = 0;
 
 
-  // Parse txt_record_ string and set up N TXT records
-  // Format: "key1=value1;key2=value2" or "key1=value1,key2=value2"
-  std::vector<std::pair<std::string, std::string>> txt_pairs;
-  size_t start = 0;
-  while (start < txt_record_.size()) {
-    size_t end = txt_record_.find_first_of(";,", start);
-    std::string pair = txt_record_.substr(start, end - start);
-    size_t eq = pair.find('=');
-    if (eq != std::string::npos) {
-      txt_pairs.emplace_back(pair.substr(0, eq), pair.substr(eq + 1));
-    } else if (!pair.empty()) {
-      txt_pairs.emplace_back(pair, "");
-    }
-    if (end == std::string::npos) break;
-    start = end + 1;
-  }
+  // Set up N TXT records from txt_record_ map
   service_record.txt_records.clear();
-  for (size_t i = 0; i < txt_pairs.size(); ++i) {
+  for (const std::pair<const std::string, std::string>& kv : txt_record_) {
     mdns_record_t txt_record{};
     txt_record.name = to_mdns_str_ref(service_record.service_instance);
     txt_record.type = MDNS_RECORDTYPE_TXT;
     txt_record.data.txt = mdns_record_txt_t{
-      .key = to_mdns_str_ref(txt_pairs[i].first),
-      .value = to_mdns_str_ref(txt_pairs[i].second)
+      .key = to_mdns_str_ref(kv.first),
+      .value = to_mdns_str_ref(kv.second)
     };
     txt_record.rclass = 0;
     txt_record.ttl = 0;

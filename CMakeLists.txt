@@ -5,6 +5,7 @@ project(
   LANGUAGES CXX)
 
 option(MDNS_CPP_BUILD_EXAMPLE "Build example executables" ON)
+option(MDNS_CPP_ENABLE_INSTALL "Generate the install target" ON)
 
 # Set the output of the libraries and executables.
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -63,7 +64,7 @@ if(MDNS_CPP_BUILD_EXAMPLE)
   add_executable(${PROJECT_NAME}_discovery_example
                  ${CMAKE_CURRENT_LIST_DIR}/example/discovery.cpp)
   target_link_libraries(${PROJECT_NAME}_discovery_example ${PROJECT_NAME}
-                        Threads::Threads)
+                        Threads::Threads) 
   add_executable(${PROJECT_NAME}_query_example
                  ${CMAKE_CURRENT_LIST_DIR}/example/query.cpp)
   target_link_libraries(${PROJECT_NAME}_query_example ${PROJECT_NAME}
@@ -73,6 +74,9 @@ endif()
 # ##############################################################################
 # install
 # ##############################################################################
+if(NOT MDNS_CPP_INSTALL)
+  return()
+endif()
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
